@@ -1,7 +1,6 @@
 import Data.List
 import Data.Char
 import Data.Bits
-import Debug.Trace
 
 main = do
   input <- getContents
