@@ -7,8 +7,8 @@ main = do
   let inputNums = map (map digitToInt) $ lines input
   let (g,e) = ge (countBits inputNums) (length inputNums)
   print ((g,e),g*e)
-  let o2'  = bitstoNum $ o2 inputNums
-  let co2' = bitstoNum $ co2 inputNums
+  let o2'  = o2 inputNums
+  let co2' = co2 inputNums
   print ((o2',co2'),o2'*co2')
 
 bitstoNum :: (Show a, Ord a, Num a) => [a] -> Int
@@ -29,11 +29,11 @@ ge counts l =
                     | otherwise = g' g            (setBit e b) (b+1) cs
   in g' 0 0 0 (reverse counts)
 
-o2 :: [[Int]] -> [Int]
+o2 :: [[Int]] -> Int
 o2 input =
   let
-    life ::Int -> [[Int]] -> [Int]
-    life b is | l == 1    = head is
+    life ::Int -> [[Int]] -> Int
+    life b is | l == 1    = bitstoNum $ head is
               | otherwise = life (b+1) (filter (\x -> (x!!b) == val) is)
       where
         l = length is
@@ -42,11 +42,11 @@ o2 input =
   in
     life 0 input
 
-co2 :: [[Int]] -> [Int]
+co2 :: [[Int]] -> Int
 co2 input =
   let
-    life :: Int -> [[Int]] -> [Int]
-    life b is | l == 1    = head is
+    life :: Int -> [[Int]] -> Int
+    life b is | l == 1    = bitstoNum $ head is
               | otherwise = life (b+1) (filter (\x -> (x!!b) == val) is)
       where
         l = length is
