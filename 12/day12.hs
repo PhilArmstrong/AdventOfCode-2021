@@ -13,13 +13,11 @@ main = do
       edges = M.fromAscListWith (++)
         (sort $ map (\[x,y] -> (x,[y]))
           (filter (\[x,y] -> x/= "end" && y /= "start") $ dat ++ map reverse dat))
-  print dat
-  print edges
   let paths1 = generate1 edges
-  print $ "Part 1: " ++ (show $ length paths1)
+  print $ "Part 1: " ++ show (length paths1)
   let paths2 = generate2 edges
-  print $ "Part 2: " ++ (show $ length paths2)
-  
+  print $ "Part 2: " ++ show (length paths2)
+
 generate1 :: M.Map String [String] -> [[String]]
 generate1 edges = 
   let
@@ -27,7 +25,7 @@ generate1 edges =
     loop seen "end" = [["end"]]
     loop seen node = case M.lookup node edges of
       Nothing -> error "Unknown node"
-      Just ss -> map (node:) $ concatMap (loop (seen')) next
+      Just ss -> map (node:) $ concatMap (loop seen') next
         where
           seen' = if all isLower node then node:seen else seen
           next = ss \\ seen
@@ -37,7 +35,7 @@ generate1 edges =
 generate2 :: M.Map String [String] -> [[String]]
 generate2 edges = 
   let
-    caves = traceShowId $ map Just $ filter (\x -> all isLower x && x /= "end" && x/="start") $ M.keys edges
+    caves = map Just $ filter (\x -> all isLower x && x /= "end" && x/="start") $ M.keys edges
 
     loop :: [String] -> Maybe String -> String -> [[String]]
     loop seen _    "end" = [["end"]]
