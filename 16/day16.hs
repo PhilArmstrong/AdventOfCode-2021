@@ -42,12 +42,17 @@ parseOperator = do
   lengthTypeID <- L.charLiteral
   case lengthTypeID of
     '0' -> do
-      l <- parseBin 15
-      input <- count l L.charLiteral
-      rest <- getInput
-      setInput input
+      len <- parseBin 15
+      beforeInput <- getParserState 
+      input <- count len L.charLiteral
+      -- store the after parse state
+      afterInput <- getParserState
+      -- parse the input bitstream for this operator
+      setParserState (beforeInput { stateInput = input })
       res <- manyTill parsePacket eof
-      setInput rest
+      afterParse <- getParserState
+      -- restore the parse state
+      setParserState (afterInput { stateParseErrors = stateParseErrors afterInput ++ stateParseErrors afterParse} )
       pure res
     _ -> do
       numPackets <- parseBin 11
@@ -58,24 +63,25 @@ parsePacket = do
   v <- parseBin 3
   t <- parseBin 3
   payload <- case t of
-    4 -> PLit <$> parseLiteral
     0 -> POp Sum <$> parseOperator
     1 -> POp Product <$> parseOperator
     2 -> POp Min <$> parseOperator
     3 -> POp Max <$> parseOperator
+    4 -> PLit <$> parseLiteral
     5 -> POp GTo <$> parseOperator
     6 -> POp LTo <$> parseOperator
     7 -> POp EQo <$> parseOperator
+    _ -> fail "bad payload id"
   pure (P v payload)
   
+main :: IO ()
 main = do
   input <- getContents
   let bits = concatMap  (printf "%04b") ((map (fst . head . readHex . (:[])) $ head $ lines input)::[Int])::String
-  print bits
   let res = parse parsePacket "" bits
   case res of
     Left error -> putStrLn $ errorBundlePretty error
-    Right result -> putStrLn $ show result ++ "\n" ++ show (addVersions result) ++ "\nEvaluate to: " ++ show (eval result)
+    Right result -> putStrLn $ "Part 1: " ++ show (addVersions result) ++ "\nPart 2: " ++ show (eval result)
 
 addVersions :: Packet -> Int
 addVersions (P v (PLit _)) = v
